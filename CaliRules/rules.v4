@@ -1,0 +1,32 @@
+# Permitir todo o tráfego de saída para a Internet
+sudo iptables -A OUTPUT -j accept
+
+# Bloquear todo o tráfego de entrada da Internet que não seja uma resposta a solicitações iniciadas internamente
+sudo iptables -A INPUT -m state --state ESTABLISHED,RELATED -j accept
+sudo iptables -A INPUT -j drop
+
+# Permitir conexões HTTP e HTTPS de entrada da RedePan para a Internet (portas 80 e 443)
+sudo iptables -A INPUT -p tcp -s RedePan_IP --dport 80 -j accept
+sudo iptables -A INPUT -p tcp -s RedePan_IP --dport 443 -j accept
+
+# Permitir conexões DNS de entrada e saída (porta 53)
+sudo iptables -A INPUT -p udp --dport 53 -j accept
+sudo iptables -A OUTPUT -p udp --dport 53 -j accept
+
+# Permitir tráfego SMTP e IMAP de entrada para e-mail (portas 465, 587, 995, 143, 993)
+sudo iptables -A INPUT -p tcp --dport 465 -j accept
+sudo iptables -A INPUT -p tcp --dport 587 -j accept
+sudo iptables -A INPUT -p tcp --dport 995 -j accept
+sudo iptables -A INPUT -p tcp --dport 143 -j accept
+sudo iptables -A INPUT -p tcp --dport 993 -j accept
+
+# Restringir o acesso ao banco de dados. Somente o servidor de Aplicações pode acessar o banco de dados postgresql (porta 5432)
+sudo iptables -A INPUT -p tcp -s ServidorAplicacoes_IP --dport 5432 -j accept
+sudo iptables -A INPUT -p tcp --dport 5432 -j drop
+
+# Restringir o acesso ao Servidor de Aplicações à SubredeLocal
+sudo iptables -A INPUT -s SubredeLocal_IP -j accept
+sudo iptables -A INPUT -j drop
+
+# Registrar tentativas de conexões bloqueadas para análise e monitoramento de segurança
+sudo iptables -A INPUT -j LOG --log-prefix "Blocked Connection: "

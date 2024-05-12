@@ -1,0 +1,52 @@
+# Networks
+networks:
+  SubredeLocal:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.0.3.0/24
+          gateway: 192.0.3.1
+
+  RedePan:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.0.2.0/24
+
+services:
+  caliandra:
+    image: alpine:latest
+    volumes:      
+      - ./CaliRules/rules.v4:/etc/iptables/rules.v4  # Defina o caminho correto para as regras iptables
+      #- ./CaliRules/rules.v4:/etc/iptables/rules.v4  # Mapear o arquivo rules.v4 para o contêiner
+    command: ["sh", "-c", "apk add --no-cache sudo iptables && su -c 'iptables --version && chmod +rx /etc/iptables/rules.v4 && sh /etc/iptables/rules.v4' && tail -f /dev/null"]
+    networks:
+      RedePan:
+        ipv4_address: 192.0.2.2
+
+  caiman:
+    image: alpine:latest
+    volumes:      
+      - ./CaiRules/rules.v4:/etc/iptables/rules.v4  # Correção do caminho para as regras iptables
+    command: ["sh", "-c", "apk add --no-cache sudo iptables && su -c 'iptables --version && chmod +rx /etc/iptables/rules.v4 && sh /etc/iptables/rules.v4' && tail -f /dev/null"] 
+    networks:
+      SubredeLocal:
+        ipv4_address: 192.0.3.2
+
+  work:
+    image: alpine:latest
+    command: ["sh", "-c", "echo Hello from Work && tail -f /dev/null"]
+    networks:
+      SubredeLocal:
+        ipv4_address: 192.0.3.5
+
+  web:
+    image: nginx:latest
+    command: ["nginx", "-g", "daemon off;"]
+    ports:
+       - "8080:80"
+    networks:
+      RedePan:
+         ipv4_address: 192.0.2.6
