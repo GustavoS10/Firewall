@@ -32,7 +32,8 @@ services:
     privileged: true
     volumes:      
       - ./CaiRules/rules.v4:/etc/iptables/rules.v4  # Correção do caminho para as regras iptables
-    command: ["sh", "-c", "apt-get update && apt-get install -y sudo ufw && ufw --version && ufw default deny incoming && ufw default allow outgoing && chmod +rx /etc/ufw/before.rules && ufw enable && tail -f /dev/null"]
+    #command: ["sh", "-c", "apt-get update && apt-get install -y sudo ufw && ufw --version && ufw default deny incoming && ufw default allow outgoing && chmod +rx /etc/ufw/before.rules && ufw enable && tail -f /dev/null"]
+    command: ["sh", "-c", "apt-get update && apt-get install -y sudo ufw && ufw default deny incoming && ufw default allow outgoing && chmod +rx /etc/ufw/before.rules && ufw enable && tail -f /dev/null"]
     networks:
       SubredeLocal:
         ipv4_address: 192.0.3.2
