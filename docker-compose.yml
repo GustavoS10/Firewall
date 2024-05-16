@@ -17,27 +17,30 @@ networks:
 
 services:
   caliandra:
-    image: alpine:latest
+    image: ubuntu:latest
+    privileged: true
     volumes:      
       - ./CaliRules/rules.v4:/etc/iptables/rules.v4  # Defina o caminho correto para as regras iptables
       #- ./CaliRules/rules.v4:/etc/iptables/rules.v4  # Mapear o arquivo rules.v4 para o contêiner
-    command: ["sh", "-c", "apk add --no-cache sudo iptables && su -c 'iptables --version && chmod +rx /etc/iptables/rules.v4 && sh /etc/iptables/rules.v4' && tail -f /dev/null"]
+    command: ["sh", "-c", "apt-get update && apt-get install -y sudo ufw && sudo ufw --version && sudo ufw default deny incoming && sudo ufw default allow outgoing && sudo chmod +rx /etc/ufw/before.rules && sudo ufw enable && tail -f /dev/null"]
     networks:
       RedePan:
         ipv4_address: 192.0.2.2
 
   caiman:
-    image: alpine:latest
+    image: ubuntu:latest
+    privileged: true
     volumes:      
       - ./CaiRules/rules.v4:/etc/iptables/rules.v4  # Correção do caminho para as regras iptables
-    command: ["sh", "-c", "apk add --no-cache sudo iptables && su -c 'iptables --version && chmod +rx /etc/iptables/rules.v4 && sh /etc/iptables/rules.v4' && tail -f /dev/null"] 
+    command: ["sh", "-c", "apt-get update && apt-get install -y sudo ufw && ufw --version && ufw default deny incoming && ufw default allow outgoing && chmod +rx /etc/ufw/before.rules && ufw enable && tail -f /dev/null"]
     networks:
       SubredeLocal:
         ipv4_address: 192.0.3.2
 
   work:
-    image: alpine:latest
-    command: ["sh", "-c", "echo Hello from Work && tail -f /dev/null"]
+    image: ubuntu:latest
+    privileged: true
+    command: ["sh", "-c", "echo 'Hello from Work' && tail -f /dev/null"]
     networks:
       SubredeLocal:
         ipv4_address: 192.0.3.5
