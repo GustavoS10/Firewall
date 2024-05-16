@@ -1,1 +1,4 @@
 Definir o Caliandra como gateway como caiman e o caiman como gateway do work
+
+**** Comando para definir o gateway na criação do contêiner pelo command ****
+ command: ["sh", "-c", "ip route add default via 192.0.3.2 && echo 'Hello from Work' && tail -f /dev/null"]
