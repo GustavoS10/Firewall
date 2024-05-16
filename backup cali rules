@@ -31,3 +31,38 @@ ufw allow in on eth0 from any state RELATED,ESTABLISHED
 
 # Registrar tentativas de conexões bloqueadas para análise e monitoramento de segurança
 ufw logging on
+
+=============================================================================================================================================
+# Permitir todo o tráfego de saída para a Internet
+ufw default allow outgoing
+
+# Bloquear todo o tráfego de entrada da Internet que não seja uma resposta a solicitações iniciadas internamente
+ufw allow in on eth0 to any port 80,443 proto tcp from RedePan_IP
+ufw allow in on eth0 to any port 53 proto udp
+ufw allow in on eth0 to any port 465,587,995,143,993 proto tcp
+ufw allow in on eth0 from 192.0.3.0
+ufw deny in on eth0
+
+# Permitir conexões HTTP e HTTPS de entrada da RedePan para a Internet (portas 80 e 443)
+ufw allow in on eth0 from RedePan_IP to any port 80,443 proto tcp
+
+# Permitir conexões DNS de entrada e saída (porta 53)
+ufw allow in on eth0 to any port 53 proto udp
+ufw allow out on eth0 to any port 53 proto udp
+
+# Permitir tráfego SMTP e IMAP de entrada para e-mail (portas 465, 587, 995, 143, 993)
+ufw allow in on eth0 to any port 465,587,995,143,993 proto tcp
+
+# Restringir o acesso ao banco de dados. Somente o servidor de Aplicações pode acessar o banco de dados postgresql (porta 5432)
+# A regra abaixo foi comentada, pois o encaminhamento para o servidor de aplicação está sendo feito no firewall Caiman
+# ufw allow in on eth0 from ServidorAplicacoes_IP to any port 5432 proto tcp
+ufw deny in on eth0 to any port 5432 proto tcp
+
+# Restringir o acesso ao Servidor de Aplicações à SubredeLocal
+ufw allow in on eth0 from SubredeLocal_IP
+
+# Permitir conexões de entrada que são respostas a solicitações iniciadas internamente
+ufw allow in on eth0 from any state RELATED,ESTABLISHED
+
+# Registrar tentativas de conexões bloqueadas para análise e monitoramento de segurança
+ufw logging on
