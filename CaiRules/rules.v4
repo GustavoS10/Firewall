@@ -12,6 +12,7 @@ ufw allow in on RedePan out on SubredeLocal
 # Bloquear qualquer acesso direto da Internet para a estação de trabalho
 ufw allow in on eth0 to any port 22 proto tcp  # Permitir SSH para administração
 ufw deny in on eth0
+#ufw allow in on eth0
 
 # Permitir conexões de saída da estação de trabalho para a Internet para HTTP, HTTPS
 ufw allow out on eth0 to any port 80 proto tcp

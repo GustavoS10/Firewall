@@ -1,5 +1,5 @@
 apt-get update
-apt-get install -y iproute2 net-tools sudo ufw
+apt-get install -y iproute2 net-tools sudo ufw curl traceroute iputils-ping
 ip route del default
 ip route add default via 192.0.2.2
 ufw default deny incoming
