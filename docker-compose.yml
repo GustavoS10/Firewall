@@ -1,3 +1,5 @@
+version: '3.8'
+
 networks:
   SubredeLocal:
     driver: bridge
@@ -17,10 +19,12 @@ services:
   caliandra:
     image: ubuntu:latest
     privileged: true
-    volumes:      
-      - ./CaliRules/rules.v4:/etc/iptables/rules.v4  # Defina o caminho correto para as regras iptables
-      #- ./CaliRules/rules.v4:/etc/iptables/rules.v4  # Mapear o arquivo rules.v4 para o contêiner
-    command: ["sh", "-c", "apt-get update && apt-get install -y sudo ufw && sudo ufw --version && sudo ufw default deny incoming && sudo ufw default allow outgoing && sudo chmod +rx /etc/ufw/before.rules && sudo ufw enable && tail -f /dev/null"]
+    command: >
+      sh -c "
+      apt-get update && apt-get install -y iptables traceroute ufw &&
+      echo 1 > /proc/sys/net/ipv4/ip_forward &&
+      iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE &&
+      tail -f /dev/null"
     networks:
       RedePan:
         ipv4_address: 192.0.2.2
@@ -28,11 +32,16 @@ services:
   caiman:
     image: ubuntu:latest
     privileged: true
-    volumes:      
-      - ./CaiRules/rules.v4:/etc/iptables/rules.v4  # Correção do caminho para as regras iptables
-      - ./CaiRules/command_install_caiman.sh:/command_install_caiman.sh
-    #command: ["sh", "-c", "apt-get update && apt-get install -y sudo ufw && ufw --version && ufw default deny incoming && ufw default allow outgoing && chmod +rx /etc/ufw/before.rules && ufw enable && tail -f /dev/null"]
-    command: ["sh", "/command_install_caiman.sh"]
+    command: >
+      sh -c "
+      apt-get update &&
+      apt-get install -y iproute2 iptables net-tools ufw curl traceroute iputils-ping &&
+      echo 1 > /proc/sys/net/ipv4/ip_forward &&
+      iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE &&
+      ip route del default || true &&
+      ip route add default via 192.0.2.2 &&
+      ufw enable &&
+      tail -f /dev/null"
     networks:
       SubredeLocal:
         ipv4_address: 192.0.3.2
@@ -42,9 +51,14 @@ services:
   work:
     image: ubuntu:latest
     privileged: true
-    volumes:
-      - ./command_install.sh:/command_install.sh
-    command: ["sh", "/command_install.sh"]
+    command: >
+      sh -c "
+      apt-get update &&
+      apt-get install -y iproute2 net-tools traceroute iputils-ping sudo curl dnsutils &&
+      ip route del default || true &&
+      ip route add default via 192.0.3.2 &&
+      echo 'Hello from Work' &&
+      tail -f /dev/null"
     networks:
       SubredeLocal:
         ipv4_address: 192.0.3.5
@@ -53,7 +67,7 @@ services:
     image: nginx:latest
     command: ["nginx", "-g", "daemon off;"]
     ports:
-       - "8080:80"
+      - "8080:80"
     networks:
       RedePan:
-         ipv4_address: 192.0.2.6
+        ipv4_address: 192.0.2.6
