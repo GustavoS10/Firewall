@@ -1,0 +1,15 @@
+ufw default allow outgoing &&
+ufw allow in on eth0 to any port 80,443 proto tcp from 192.0.2.0/24 &&
+ufw allow in on eth0 to any port 53 proto udp &&
+ufw allow in on eth0 to any port 465,587,995,143,993 proto tcp &&
+ufw allow in on eth0 from 192.0.3.0 &&
+ufw deny in on eth0 &&
+ufw allow in on eth0 from RedePan_IP to any port 80,443 proto tcp &&
+ufw allow in on eth0 to any port 53 proto udp &&
+ufw allow out on eth0 to any port 53 proto udp &&
+ufw allow in on eth0 to any port 465,587,995,143,993 proto tcp &&
+ufw allow in on eth0 from ServidorAplicacoes_IP to any port 5432 proto tcp &&
+ufw deny in on eth0 to any port 5432 proto tcp &&
+ufw allow in on eth0 from SubredeLocal_IP &&
+ufw allow in on eth0 from any state RELATED,ESTABLISHED &&
+ufw logging on &&
