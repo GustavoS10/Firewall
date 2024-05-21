@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  caliandra:
+    image: ubuntu:latest
+    privileged: true
+    command: >
+      /bin/bash -c "
+      apt-get update && apt-get install -y iptables iproute2 traceroute ufw &&
+      echo 1 > /proc/sys/net/ipv4/ip_forward &&
+      iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE &&
+      echo 'y' | ufw enable &&
+      tail -f /dev/null"
+    networks:
+      RedePan:
+        ipv4_address: 192.0.2.2
+
+  caiman:
+    image: ubuntu:latest
+    privileged: true
+    command: >
+      /bin/bash -c "
+      apt-get update && apt-get install -y iptables iproute2 traceroute ufw &&
+      echo 1 > /proc/sys/net/ipv4/ip_forward &&
+      iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE &&
+      ip route del default || true &&
+      ip route add default via 192.0.2.2 &&
+      tail -f /dev/null"
+    networks:
+      SubredeLocal:
+        ipv4_address: 192.0.3.3
+      RedePan:
+        ipv4_address: 192.0.2.3
+
+  workstation:
+    image: ubuntu:latest
+    privileged: true
+    command: >
+      /bin/bash -c "
+      apt-get update && apt-get install -y iproute2 traceroute &&
+      ip route del default || true &&
+      ip route add default via 192.0.3.3 &&
+      tail -f /dev/null"
+    networks:
+      SubredeLocal:
+        ipv4_address: 192.0.3.4
+
+networks:
+  RedePan:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.0.2.0/24
+  SubredeLocal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.0.3.0/24
+
+#LINKS
+https://dontpad.com/yangelita
+https://dontpad.com/yangelita
