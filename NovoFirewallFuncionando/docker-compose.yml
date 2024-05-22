@@ -41,10 +41,13 @@ services:
       ufw --force reset &&
       ufw default deny incoming &&
       ufw default deny outgoing &&
-      ufw allow in on SubredeLocal out on RedePan &&
-      ufw allow in on RedePan out on SubredeLocal &&
+      ufw allow in on SubredeLocal &&
+      ufw allow out on RedePan &&
+      ufw allow in on RedePan &&
+      ufw allow out on SubredeLocal &&
       ufw allow in on eth0 to any port 22 proto tcp &&
-      ufw deny in on eth0 &&
+      ufw allow out on eth0 to any port 53 proto udp &&
+      ufw allow out on eth0 to any port 53 proto tcp &&
       ufw allow out on eth0 to any port 80 proto tcp &&
       ufw allow out on eth0 to any port 443 proto tcp &&
       ufw allow out on eth0 to any port 25 proto tcp &&
@@ -54,13 +57,15 @@ services:
       ufw allow out on eth0 to any port 993 proto tcp &&
       ufw allow out on eth0 to any port 110 proto tcp &&
       ufw allow out on eth0 to any port 995 proto tcp &&
+      ufw allow out on eth0 to any port 123 proto udp &&
+      ufw allow out on eth0 to any port 8080 proto tcp &&
       ufw deny in on eth0 to any port 5432 proto tcp &&
       ufw deny in on SubredeLocal to any port 80 proto tcp &&
       ufw deny in on SubredeLocal to any port 443 proto tcp &&
       ufw allow in on eth0 from 192.0.3.0/24 to any port 5432 proto tcp &&
-      ufw deny in on eth0 to any port 5432 proto tcp &&
-      sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw &&¨
-      ufw enable &&
+      sed -i 's/DEFAULT_FORWARD_POLICY=\"DROP\"/DEFAULT_FORWARD_POLICY=\"ACCEPT\"/' /etc/default/ufw &&
+      ufw logging on &&
+      ufw --force enable &&
       tail -f /dev/null"
     networks:
       SubredeLocal:
@@ -71,15 +76,26 @@ services:
   workstation:
     image: ubuntu:latest
     privileged: true
+    depends_on:
+      - caliandra
+      - caiman
     command: >
       /bin/bash -c "
-      apt-get update && apt-get install -y iproute2 traceroute &&
+      apt-get update && apt-get install -y iproute2 curl traceroute &&
       ip route del default || true &&
       ip route add default via 192.0.3.2 &&
       tail -f /dev/null"
     networks:
       SubredeLocal:
         ipv4_address: 192.0.3.4
+
+  web:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    networks:
+      RedePan:
+        ipv4_address: 192.0.2.6
 
 networks:
   RedePan:

@@ -1,1 +1,33 @@
-teste
+echo "Resetando UFW..." &&
+ufw --force reset &&
+echo "Definindo políticas padrão..." &&
+ufw default deny incoming &&
+ufw default deny outgoing &&
+echo "Permitindo tráfego entre subredes..." &&
+ufw allow in on SubredeLocal out on RedePan &&
+ufw allow in on RedePan out on SubredeLocal &&
+echo "Permitindo SSH na interface eth0..." &&
+ufw allow in on eth0 to any port 22 proto tcp &&
+echo "Bloqueando todas as entradas na interface eth0..." &&
+ufw deny in on eth0 &&
+echo "Permitindo tráfego de saída..." &&
+ufw allow out on eth0 to any port 80 proto tcp &&
+ufw allow out on eth0 to any port 443 proto tcp &&
+ufw allow out on eth0 to any port 25 proto tcp &&
+ufw allow out on eth0 to any port 465 proto tcp &&
+ufw allow out on eth0 to any port 587 proto tcp &&
+ufw allow out on eth0 to any port 143 proto tcp &&
+ufw allow out on eth0 to any port 993 proto tcp &&
+ufw allow out on eth0 to any port 110 proto tcp &&
+ufw allow out on eth0 to any port 995 proto tcp &&
+echo "Negando conexões de entrada na porta 5432..." &&
+ufw deny in on eth0 to any port 5432 proto tcp &&
+echo "Negando conexões de entrada nas portas 80 e 443 na SubredeLocal..." &&
+ufw deny in on SubredeLocal to any port 80 proto tcp &&
+ufw deny in on SubredeLocal to any port 443 proto tcp &&
+echo "Permitindo conexões de entrada na porta 5432 a partir da subrede 192.0.3.0/24..." &&
+ufw allow in on eth0 from 192.0.3.0/24 to any port 5432 proto tcp &&
+echo "Ajustando a política de encaminhamento..." &&
+sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw &&
+echo "Habilitando o UFW..." &&
+ufw enable &&
