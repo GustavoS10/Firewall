@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  ubuntu1:
+    image: ubuntu:latest
+    container_name: ubuntu1
+    networks:
+      custom_network:
+        ipv4_address: 192.168.1.10
+    tty: true
+
+  ubuntu2:
+    image: ubuntu:latest
+    container_name: ubuntu2
+    networks:
+      custom_network:
+        ipv4_address: 192.168.1.11
+    tty: true
+
+networks:
+  custom_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
