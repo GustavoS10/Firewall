@@ -1,0 +1,10 @@
+# Use a imagem base do Alpine Linux
+FROM alpine:latest
+
+# Instalar netcat
+RUN apk add --no-cache netcat-openbsd busybox-extras
+
+
+
+# Executar o script na inicialização do contêiner
+ENTRYPOINT ["sh", "-c", "tail -f /dev/null"]
