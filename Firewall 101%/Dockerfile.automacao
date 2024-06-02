@@ -24,7 +24,7 @@ RUN echo 'root:password' | chpasswd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
-RUN service ssh start
+# RUN service ssh start
 
 # Comando para iniciar o serviço SSH
 CMD ["/usr/sbin/sshd", "-D"]

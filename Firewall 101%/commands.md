@@ -9,3 +9,6 @@
 Por algum motivo o docker-compose.yml não executa os dois comandos direito para esse contêiner
 1) ip route del default
 2) ip route add default via 192.168.1.2
+
+### PC Automação ###
+Iniciar o SSH

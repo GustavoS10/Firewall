@@ -21,21 +21,21 @@ services:
       iptables -A FORWARD -i eth0 -o eth1 -m state --state RELATED,ESTABLISHED -j ACCEPT &&
       iptables -A FORWARD -i eth1 -o eth0 -j ACCEPT &&
       ufw default allow outgoing &&
+      ufw default deny incoming &&
       ufw allow in on eth0 from 192.168.2.2 to any port 80,443 proto tcp &&
       ufw allow in on eth0 from 192.168.2.2 to any port 53 proto udp &&
       ufw allow in on eth0 from 192.168.2.2 to any port 465,587,995,143,993 proto tcp &&
       ufw allow in on eth0 from 192.168.2.3 &&
-      ufw deny in on eth0 &&
       ufw allow in on eth0 from 192.168.2.3 to any port 80,443 proto tcp &&
       ufw allow in on eth0 from 192.168.2.3 to any port 53 proto udp &&
       ufw allow out on eth0 to any port 53 proto udp &&
       ufw allow in on eth0 from 192.168.2.3 to any port 465,587,995,143,993 proto tcp &&
       ufw deny in on eth0 to any port 5432 proto tcp &&
       ufw allow in on eth0 from 192.168.3.3 &&
-      ufw default deny &&
       ufw logging on &&
       ufw enable &&
       tail -f /dev/null"
+
     networks:
       dmz_net:
         ipv4_address: 192.168.2.2
@@ -91,10 +91,10 @@ services:
       ufw deny in on internal_net to any port 443 proto tcp &&
       ufw allow in on eth0 from 192.168.3.0/24 to any port 5432 proto tcp &&
       sed -i 's/DEFAULT_FORWARD_POLICY=\"DROP\"/DEFAULT_FORWARD_POLICY=\"ACCEPT\"/' /etc/default/ufw &&
-      ufw default deny &&
       ufw logging on &&
       ufw --force enable &&
       tail -f /dev/null"
+
     networks:
       dmz_net:
         ipv4_address: 192.168.2.3
@@ -114,7 +114,7 @@ services:
     command: >
       /bin/bash -c "
       apt update &&
-      apt install -y iproute2 traceroute openssh-server &&
+      apt install -y iproute2 traceroute openssh-server telnet &&
       mkdir /var/run/sshd &&
       echo 'root:password' | chpasswd &&
       sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&
@@ -167,6 +167,8 @@ services:
       dockerfile: Dockerfile.servidor
     container_name: dns_server_2.4
     privileged: true
+    ports:
+      - "5353:53"
     networks:
       dmz_net:
         ipv4_address: 192.168.2.4
@@ -187,6 +189,8 @@ services:
       dockerfile: Dockerfile.servidor
     container_name: web_server_2.6
     privileged: true
+    ports:
+      - "8080:80"
     networks:
       dmz_net:
         ipv4_address: 192.168.2.6
