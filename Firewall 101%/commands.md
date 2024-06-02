@@ -10,5 +10,9 @@ Por algum motivo o docker-compose.yml não executa os dois comandos direito para
 1) ip route del default
 2) ip route add default via 192.168.1.2
 
+### PC Interno - Teste ###
+curl http://www.example.com
+curl https://www.example.com
+
 ### PC Automação ###
 Iniciar o SSH
