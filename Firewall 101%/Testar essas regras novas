@@ -1,0 +1,48 @@
+### CALIANDRA ###
+command: >
+  /bin/bash -c "
+  apt-get update && apt-get install -y iptables iproute2 traceroute ufw &&
+  echo 1 > /proc/sys/net/ipv4/ip_forward &&
+  iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE &&
+  iptables -A FORWARD -i eth0 -o eth1 -m state --state RELATED,ESTABLISHED -j ACCEPT &&
+  iptables -A FORWARD -i eth1 -o eth0 -j ACCEPT &&
+  ufw default allow outgoing &&
+  ufw default deny incoming &&
+  ufw allow in on eth0 from 192.168.2.0/24 to any port 80,443 proto tcp &&
+  ufw allow in on eth0 from 192.168.2.0/24 to any port 53 proto udp &&
+  ufw allow in on eth0 from 192.168.2.0/24 to any port 465,587,995,143,993 proto tcp &&
+  ufw allow out on eth0 to any port 53 proto udp &&
+  ufw allow in on eth0 from 192.168.2.0/24 to any port 5432 proto tcp &&
+  ufw logging on &&
+  ufw enable &&
+  tail -f /dev/null"
+
+### CAIMAN ###
+
+command: >
+  /bin/bash -c "
+  apt-get update && apt-get install -y iptables iproute2 traceroute ufw &&
+  echo 1 > /proc/sys/net/ipv4/ip_forward &&
+  iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE &&
+  iptables -A FORWARD -i eth0 -o eth1 -m state --state RELATED,ESTABLISHED -j ACCEPT &&
+  iptables -A FORWARD -i eth1 -o eth0 -j ACCEPT &&
+  ip route del default || true &&
+  ip route add default via 192.168.2.2 &&
+  ufw --force reset &&
+  ufw default deny incoming &&
+  ufw default deny outgoing &&
+  ufw allow in on internal_net &&
+  ufw allow out on internal_net &&
+  ufw allow in on eth0 to any port 22 proto tcp &&
+  ufw allow out on eth0 to any port 80,443 proto tcp &&
+  ufw allow out on eth0 to any port 465,587,995,143,993,110,995,25 proto tcp &&
+  ufw allow out on eth0 to any port 53 proto udp,tcp &&
+  ufw allow out on eth0 to any port 123 proto udp &&
+  ufw allow out on eth0 to any port 8080 proto tcp &&
+  ufw deny in on eth0 to any port 5432 proto tcp &&
+  ufw deny in on internal_net to any port 80,443 proto tcp &&
+  ufw allow in on eth0 from 192.168.3.0/24 to any port 5432 proto tcp &&
+  sed -i 's/DEFAULT_FORWARD_POLICY=\"DROP\"/DEFAULT_FORWARD_POLICY=\"ACCEPT\"/' /etc/default/ufw &&
+  ufw logging on &&
+  ufw --force enable &&
+  tail -f /dev/null"
