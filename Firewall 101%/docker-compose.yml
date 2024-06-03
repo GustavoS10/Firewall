@@ -20,21 +20,16 @@ services:
       iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE &&
       iptables -A FORWARD -i eth0 -o eth1 -m state --state RELATED,ESTABLISHED -j ACCEPT &&
       iptables -A FORWARD -i eth1 -o eth0 -j ACCEPT &&
-      ufw default allow outgoing &&
-      ufw allow in on eth0 from 192.168.2.2 to any port 80,443 proto tcp &&
-      ufw allow in on eth0 from 192.168.2.2 to any port 53 proto udp &&
-      ufw allow in on eth0 from 192.168.2.2 to any port 465,587,995,143,993 proto tcp &&
-      ufw allow in on eth0 from 192.168.2.3 &&
-      ufw deny in on eth0 &&
-      ufw allow in on eth0 from 192.168.2.3 to any port 80,443 proto tcp &&
-      ufw allow in on eth0 from 192.168.2.3 to any port 53 proto udp &&
-      ufw allow out on eth0 to any port 53 proto udp &&
-      ufw allow in on eth0 from 192.168.2.3 to any port 465,587,995,143,993 proto tcp &&
-      ufw deny in on eth0 to any port 5432 proto tcp &&
-      ufw allow in on eth0 from 192.168.3.3 &&
-      ufw default deny &&
-      ufw logging on &&
-      ufw enable &&
+      iptables -A FORWARD -p tcp -d 192.168.2.6 -m multiport --dports 80,443 -j ACCEPT &&
+      iptables -A FORWARD -p udp -d 192.168.2.4 --dport 53 -j ACCEPT &&
+      iptables -A FORWARD -p tcp -d 192.168.2.0/24 -m multiport --dports 465,587,995,143,993 -j ACCEPT &&
+      iptables -A FORWARD -p tcp -s 192.168.2.8 -d 192.168.2.7 --dport 5432 -j ACCEPT &&
+      iptables -A FORWARD -d 192.168.2.7 -j DROP &&
+      iptables -A FORWARD -s 192.168.3.0/24 -d 192.168.2.8 -j ACCEPT && 
+      iptables -A FORWARD -d 192.168.2.8 -j DROP &&
+      iptables -A FORWARD -s 192.168.2.0/24 -d 192.168.2.0/24 -j ACCEPT &&
+      iptables -A FORWARD -d 192.168.2.0/24 -j DROP &&
+      iptables -P FORWARD ACCEPT &&
       tail -f /dev/null"
     networks:
       dmz_net:
@@ -55,45 +50,22 @@ services:
       - UFW_DEFAULT_INSTANCE=skip
     command: >
       /bin/bash -c "
-      apt-get update && apt-get install -y iptables iproute2 traceroute ufw &&
-      echo 1 > /proc/sys/net/ipv4/ip_forward &&
-      iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE &&
-      iptables -A FORWARD -i eth0 -o eth1 -m state --state RELATED,ESTABLISHED -j ACCEPT &&
-      iptables -A FORWARD -i eth1 -o eth0 -j ACCEPT &&
-      iptables -P INPUT ACCEPT &&
+      apt-get update && apt-get install -y iptables iproute2 traceroute &&
       ip route del default || true &&
       ip route add default via 192.168.2.2 &&
-      ufw --force reset &&
-      ufw default deny incoming &&
-      ufw default deny outgoing &&
-      ufw deny from 8.8.8.8 to any &&
-      ufw allow in on internal_net &&
-      ufw allow out on external_net &&
-      ufw allow in on external_net &&
-      ufw allow out on internal_net &&
-      ufw allow in on eth0 to any port 22 proto tcp &&
-      ufw allow in on eth0 from 192.168.3.4 to any port 22 proto tcp &&
-      ufw allow out on eth0 to any port 53 proto udp &&
-      ufw allow out on eth0 to any port 53 proto tcp &&
-      ufw allow out on eth0 to any port 80 proto tcp &&
-      ufw allow out on eth0 to any port 443 proto tcp &&
-      ufw allow out on eth0 to any port 25 proto tcp &&
-      ufw allow out on eth0 to any port 465 proto tcp &&
-      ufw allow out on eth0 to any port 587 proto tcp &&
-      ufw allow out on eth0 to any port 143 proto tcp &&
-      ufw allow out on eth0 to any port 993 proto tcp &&
-      ufw allow out on eth0 to any port 110 proto tcp &&
-      ufw allow out on eth0 to any port 995 proto tcp &&
-      ufw allow out on eth0 to any port 123 proto udp &&
-      ufw allow out on eth0 to any port 8080 proto tcp &&
-      ufw deny in on eth0 to any port 5432 proto tcp &&
-      ufw deny in on internal_net to any port 80 proto tcp &&
-      ufw deny in on internal_net to any port 443 proto tcp &&
-      ufw allow in on eth0 from 192.168.3.0/24 to any port 5432 proto tcp &&
-      sed -i 's/DEFAULT_FORWARD_POLICY=\"DROP\"/DEFAULT_FORWARD_POLICY=\"ACCEPT\"/' /etc/default/ufw &&
-      ufw default deny &&
-      ufw logging on &&
-      ufw --force enable &&
+      echo 1 > /proc/sys/net/ipv4/ip_forward &&
+      iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE &&
+      iptables -A FORWARD -p tcp -s 192.168.3.0/24 -m multiport --dports 80,443 -j ACCEPT &&
+      iptables -A FORWARD -p tcp -s 192.168.3.0/24 -m multiport --dports 465,587,995,143,993 -j ACCEPT &&
+      iptables -A FORWARD -d 192.168.2.7 -j DROP &&
+      iptables -A FORWARD -p tcp -d 192.168.3.0/24 -m multiport --dports 80,443 -j DROP &&
+      iptables -A FORWARD -p udp -d 192.168.3.0/24 -m multiport --dports 80,443 -j DROP &&
+      iptables -A FORWARD -s 192.168.3.0/24 -d 192.168.2.8 -j ACCEPT &&
+      iptables -A FORWARD -d 192.168.2.8 -j DROP &&
+      iptables -A FORWARD -s 192.168.3.0/24 -d 192.168.2.0/24 -j ACCEPT &&
+      iptables -A FORWARD -s 192.168.2.0/24 -d 192.168.3.0/24 -j ACCEPT &&
+      iptables -A FORWARD -d 192.168.3.0/24 -j DROP &&
+      iptables -P FORWARD ACCEPT &&
       tail -f /dev/null"
     networks:
       dmz_net:
@@ -114,7 +86,7 @@ services:
     command: >
       /bin/bash -c "
       apt update &&
-      apt install -y iproute2 traceroute openssh-server &&
+      apt install -y iproute2 traceroute openssh-server telnet &&
       mkdir /var/run/sshd &&
       echo 'root:password' | chpasswd &&
       sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&
