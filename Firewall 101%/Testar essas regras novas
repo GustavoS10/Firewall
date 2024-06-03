@@ -17,6 +17,18 @@ command: >
   ufw enable &&
   tail -f /dev/null"
 
+### NOVAS CALIANDRA - Do y ###
+iptables -A FORWARD -p tcp -d 192.168.2.6 -m multiport --dports 80,443 -j ACCEPT
+iptables -A FORWARD -p udp -d 192.168.2.4 --dport 53 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.2.0/24 -m multiport --dports 465,587,995,143,993 -j ACCEPT
+iptables -A FORWARD -p tcp -s 192.168.2.8 -d 192.168.2.7 --dport 5432 -j ACCEPT 
+iptables -A FORWARD -d 192.168.2.7 -j DROP 
+iptables -A FORWARD -s 192.168.3.0/24 -d 192.168.2.8 -j ACCEPT 
+iptables -A FORWARD -d 192.168.2.8 -j DROP 
+iptables -A FORWARD -s 192.168.2.0/24 -d 10.0.2.0/24 -j ACCEPT
+iptables -A FORWARD -d 192.168.2.0/24 -j DROP
+iptables -P FORWARD ACCEPT
+
 ### CAIMAN ###
 
 command: >
@@ -46,3 +58,13 @@ command: >
   ufw logging on &&
   ufw --force enable &&
   tail -f /dev/null"
+
+### NOVAS CAIMAN ###
+iptables -A FORWARD -p tcp -s 192.168.3.0/24 -d 192.168.2.0/24 -j ACCEPT
+iptables -A FORWARD -p tcp -s 192.168.3.0/24 -d 192.168.1.0/24 -j DROP
+iptabels -A FORWARd -p tcp -d 192.168.3.0/24 -m multiport --dports 80,443 -j ACCEPT
+iptabels -A FORWARd -p udp -d 192.168.3.0/24 -m multiport --dports 80,443 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.3.0/24 -m multiport --dports 465,587,995,143,993 -j ACCEPT
+iptabels -A FORWARD -p tcp -s 192.168.3.0/24 -d 192.168.2.7 --dport 5432 -j DROP
+iptables -A FORWARD -p TCP -s 192.168.3.0/24 -d 192.168.2.6 --dports 80,443 -j DROP
+iptables -A FORWARD -p TCP -s 192.168.3.0/24 -d 192.168.2.8 -j DROP
